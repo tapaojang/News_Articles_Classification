@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thai News Articles Classification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(to right, #f9f9f9, #ececec);
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #444;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 70%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bbb;
+            font-size: 16px;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            margin-left: 165px;
+        }
+
+        select {
+            width: 70%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bbb;
+            font-size: 16px;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        textarea:focus,
+        select:focus {
+            border-color: #007bff;
+            box-shadow: 0px 3px 6px rgba(0, 123, 255, 0.3);
+        }
+
+        select {
+            appearance: none;
+            background-color: white;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="gray" d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+        }
+
+        .classify-button {
+            width: 200px;
+            padding: 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+            margin-left: 500px;
+            /* ขยับปุ่มไปทางขวา */
+            display: block;
+            /* แสดงปุ่มในลักษณะบล็อก */
+        }
+
+        .classify-button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .charts-container {
+            display: none;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .chart-box {
+            width: 350px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .donut-chart {
+            width: 250px;
+            height: 250px;
+        }
+
+        .legend-container {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .legend-text {
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Thai News Articles Classification</h2>
+    <div class="input-container">
+        <select id="article-select" onchange="toggleCustomText()">
+            <option value="">กรุณาเลือกเนื้อหาข่าวที่ต้องการวิเคราะห์</option>
+            <option value="custom">ป้อนหัวข้อข่าว</option>
+            <option value="“อนุสรณ์” มั่นใจ เพื่อไทยแจงได้ ไม่กังวลถูกยื่นยุบพรรค ปม “ทักษิณ” ครอบงำ">“อนุสรณ์” มั่นใจ
+                เพื่อไทยแจงได้ ไม่กังวลถูกยื่นยุบพรรค ปม “ทักษิณ” ครอบงำ</option>
+            <option value="รวบ เจ้าหน้าที่รัฐ อดีตชุดปฏิบัติการพิเศษ ลักทรัพย์เงินหลวงกว่า 10 ล้าน หลบหนี">รวบ
+                เจ้าหน้าที่รัฐ อดีตชุดปฏิบัติการพิเศษ ลักทรัพย์เงินหลวงกว่า 10 ล้าน หลบหนี</option>
+            <option value="แจ็ค-ใบหม่อน เผยชื่อจริง น้องคากิ ที่ หมอช้าง ตั้งให้ พร้อมเผยความหมาย">แจ็ค-ใบหม่อน
+                เผยชื่อจริง น้องคากิ ที่ หมอช้าง ตั้งให้ พร้อมเผยความหมาย</option>
+            <option value="“ช้างศึก” พ่าย “ฝรั่งเศส” 2-5 ตกรอบ 16 ทีม ศึกฟุตซอลชิงแชมป์โลก 2024">“ช้างศึก” พ่าย
+                “ฝรั่งเศส” 2-5 ตกรอบ 16 ทีม ศึกฟุตซอลชิงแชมป์โลก 2024</option>
+            <option
+                value="ครั้งแรกในไทย! พบหมู่โลหิตพิเศษ Rh+(Asian-type DEL) สภากาชาด ชวนปชช. หมู่เลือด Rh- บริจาคโลหิตคัดกรอง Rh+">
+                ครั้งแรกในไทย! พบหมู่โลหิตพิเศษ Rh+(Asian-type DEL) สภากาชาด ชวนปชช. หมู่เลือด Rh- บริจาคโลหิตคัดกรอง
+                Rh+</option>
+            <option value="ดูดวงราศี ดาวศุกร์ย้ายส่งผลดี เรื่องร้ายคลี่คลาย มีเกณฑ์รวยติดจรวด ได้เงินคืนมา">ดูดวงราศี
+                ดาวศุกร์ย้ายส่งผลดี เรื่องร้ายคลี่คลาย มีเกณฑ์รวยติดจรวด ได้เงินคืนมา</option>
+            <option value="ตารางผ่อน Mitsubishi Triton Athlete 2024-2025 กระบะตัวแต่งยกสูง">ตารางผ่อน Mitsubishi Triton
+                Athlete 2024-2025 กระบะตัวแต่งยกสูง</option>
+            <option value="Honor เปิดตัว X7c ขุมพลัง Snapdragon 4 Gen 2, กล้อง 108 ล้านพิกเซล, แบตเตอรี่ 6,000 mAh">
+                Honor เปิดตัว X7c ขุมพลัง Snapdragon 4 Gen 2, กล้อง 108 ล้านพิกเซล, แบตเตอรี่ 6,000 mAh</option>
+            <option value="คำสั่ง Minecraft ที่เป็นประโยชน์ต่อการเล่น และควบคุมเซิร์ฟเวอร์">คำสั่ง Minecraft
+                ที่เป็นประโยชน์ต่อการเล่น และควบคุมเซิร์ฟเวอร์</option>
+            <option value="ออมสิน - ธอส. ลดดอกเบี้ยกู้ 0.25% มีผล 1 พ.ย. แต่ยังตรึงดอกเบี้ยเงินฝากส่งเสริมการออม">ออมสิน
+                - ธอส. ลดดอกเบี้ยกู้ 0.25% มีผล 1 พ.ย. แต่ยังตรึงดอกเบี้ยเงินฝากส่งเสริมการออม</option>
+        </select>
+    </div>
+
+    <div class="input-container" id="customTextContainer" style="display: none;">
+        <textarea id="customText" placeholder="ป้อนข้อความข่าวที่นี่..."></textarea>
+    </div>
+    <button class="classify-button" onclick="classifyText()">Classify</button>
+    <div class="charts-container" id="results">
+        <div class="chart-box">
+            <div class="chart-title">TF-IDF + Naive Bayes</div>
+            <svg class="donut-chart" id="tfidf-donut" viewBox="-10 -10 120 120">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="20" />
+            </svg>
+            <div class="top-category" id="top-tfidf"></div> <!-- แสดงหัวข้อที่มากที่สุด -->
+            <div class="legend-container" id="tfidf-legend"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">BERT</div>
+            <svg class="donut-chart" id="bert-donut" viewBox="-10 -10 120 120">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="20" />
+            </svg>
+            <div class="top-category" id="top-bert"></div> <!-- แสดงหัวข้อที่มากที่สุด -->
+            <div class="legend-container" id="bert-legend"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">WangchanBERTa</div>
+            <svg class="donut-chart" id="wangchanberta-donut" viewBox="-10 -10 120 120">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="20" />
+            </svg>
+            <div class="top-category" id="top-wangchanberta"></div> <!-- แสดงหัวข้อที่มากที่สุด -->
+            <div class="legend-container" id="wangchanberta-legend"></div>
+        </div>
+    </div>
+
+    <script>
+        // Define categories and colors
+        const categories = [
+            { label: 'การเมือง', color: '#FF6384' },
+            { label: 'ข่าวการเงิน', color: '#36A2EB' },
+            { label: 'ข่าวกีฬา', color: '#FFCE56' },
+            { label: 'ข่าวบันเทิง', color: '#4BC0C0' },
+            { label: 'ข่าวรถยนต์', color: '#9966FF' },
+            { label: 'ข่าวเกมส์', color: '#FF9F40' },
+            { label: 'ข่าวไอที', color: '#FFB1C1' },
+            { label: 'ดูดวง', color: '#E7E9ED' },
+            { label: 'สุขภาพ', color: '#7D9EC0' },
+            { label: 'อาชญากรรม', color: '#A0D1D0' }
+        ];
+
+        function toggleCustomText() {
+            const articleSelect = document.getElementById('article-select');
+            const customTextContainer = document.getElementById('customTextContainer');
+            if (articleSelect.value === 'custom') {
+                customTextContainer.style.display = 'block';
+            } else {
+                customTextContainer.style.display = 'none';
+            }
+        }
+
+        function classifyText() {
+            const articleSelect = document.getElementById('article-select');
+            const customText = document.getElementById('customText').value;
+            const articleText = articleSelect.value === 'custom' ? customText : articleSelect.value;
+
+            if (!articleText.trim()) {
+                alert('กรุณาใส่เนื้อหาข่าวที่ต้องการวิเคราะห์');
+                return;
+            }
+
+            fetch('/classify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: articleText })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                    document.getElementById('results').style.display = 'flex';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+        function updateDonutChart(chartId, data) {
+            const svg = document.getElementById(chartId);
+            const total = data.reduce((acc, item) => acc + item.value, 0);
+            let currentAngle = 0;
+
+            svg.innerHTML = '<circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="20"/>';
+
+            const sortedData = [...data].sort((a, b) => b.value - a.value);
+
+            sortedData.forEach(item => {
+                if (item.value > 0) {
+                    const angle = (item.value / total) * 360;
+                    const radius = 45;
+                    const strokeWidth = 20;
+
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDasharray = `${(angle / 360) * circumference} ${circumference}`;
+                    const strokeDashoffset = -((currentAngle / 360) * circumference);
+
+                    svg.innerHTML += `
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="${item.color}" stroke-width="${strokeWidth}" 
+                        stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" transform="rotate(-90, 50, 50)" />
+                    `;
+
+                    currentAngle += angle;
+                }
+            });
+        }
+        function displayResults(data) {
+            const tfidfLegendContainer = document.getElementById('tfidf-legend');
+            tfidfLegendContainer.innerHTML = '';
+            const bertLegendContainer = document.getElementById('bert-legend');
+            bertLegendContainer.innerHTML = '';
+            const wangchanbertaLegendContainer = document.getElementById('wangchanberta-legend');
+            wangchanbertaLegendContainer.innerHTML = '';
+
+            // Display TF-IDF results
+            const tfidfData = data.tfidf.legend;
+            const tfidfChartData = tfidfData.map(item => ({
+                label: item.label,
+                value: item.value,
+                color: categories.find(c => c.label === item.label)?.color || '#000'
+            }));
+            // หาคลาสที่มีค่า value สูงที่สุด
+            const highestClass = tfidfChartData.reduce((max, item) => {
+                return item.value > max.value ? item : max;
+            }, { value: -Infinity }); // เริ่มต้นด้วยค่า value ที่ต่ำที่สุด
+
+            // แสดงผลลัพธ์ที่สูงที่สุดใน chart box
+            const topTfidfContainer = document.getElementById('top-tfidf');
+            topTfidfContainer.innerHTML = highestClass.label;
+
+            updateDonutChart('tfidf-donut', tfidfChartData);
+
+            
+            const sortedTfidfData = tfidfChartData.sort((a, b) => b.value - a.value);
+            sortedTfidfData.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                const percentageValue = ((item.value / tfidfData.reduce((acc, i) => acc + i.value, 0)) * 100).toFixed(2);
+                legendItem.innerHTML = `
+            <div class="legend-dot" style="background-color: ${item.color};"></div>
+            <div class="legend-text">${item.label}: ${percentageValue}%</div>
+        `;
+                tfidfLegendContainer.appendChild(legendItem);
+            });
+
+            // Display BERT results
+            const bertData = data.bert.legend;
+            const bertChartData = bertData.map(item => ({
+                label: item.label,
+                value: item.value,
+                color: categories.find(c => c.label === item.label)?.color || '#000'
+            }));
+            // หาคลาสที่มีค่า value สูงที่สุดสำหรับ BERT
+            const highestBertClass = bertChartData.reduce((max, item) => {
+                return item.value > max.value ? item : max;
+            }, { value: -Infinity });
+            const topBertContainer = document.getElementById('top-bert');
+            topBertContainer.innerHTML = highestBertClass.label;
+
+            updateDonutChart('bert-donut', bertChartData);
+
+            
+            const sortedBertData = bertChartData.sort((a, b) => b.value - a.value);
+            sortedBertData.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                const percentageValue = ((item.value / bertData.reduce((acc, i) => acc + i.value, 0)) * 100).toFixed(2);
+                legendItem.innerHTML = `
+            <div class="legend-dot" style="background-color: ${item.color};"></div>
+            <div class="legend-text">${item.label}: ${percentageValue}%</div>
+        `;
+                bertLegendContainer.appendChild(legendItem);
+            });
+
+            // Display WangchanBERTa results
+            const wangchanbertaData = data.wangchanberta.legend;
+            const wangchanbertaChartData = wangchanbertaData.map(item => ({
+                label: item.label,
+                value: item.value,
+                color: categories.find(c => c.label === item.label)?.color || '#000'
+            }));
+             // หาคลาสที่มีค่า value สูงที่สุดสำหรับ WangchanBERTa
+            const highestWangchanbertaClass = wangchanbertaChartData.reduce((max, item) => {
+                return item.value > max.value ? item : max;
+            }, { value: -Infinity });
+            const topWangchanbertaContainer = document.getElementById('top-wangchanberta');
+            topWangchanbertaContainer.innerHTML = highestWangchanbertaClass.label;
+
+            updateDonutChart('wangchanberta-donut', wangchanbertaChartData);
+
+           
+            const sortedWangchanbertaData = wangchanbertaChartData.sort((a, b) => b.value - a.value);
+            sortedWangchanbertaData.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                const percentageValue = ((item.value / wangchanbertaData.reduce((acc, i) => acc + i.value, 0)) * 100).toFixed(2);
+                legendItem.innerHTML = `
+            <div class="legend-dot" style="background-color: ${item.color};"></div>
+            <div class="legend-text">${item.label}: ${percentageValue}%</div>
+        `;
+                wangchanbertaLegendContainer.appendChild(legendItem);
+            });
+        }
+
+
+    </script>
+</body>
+
+</html>
